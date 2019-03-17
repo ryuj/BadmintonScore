@@ -24,10 +24,14 @@ public class Manager : MonoBehaviour
         }
     }
 
+    private const int MAX_POINT = 15;
+
     [SerializeField]
     private Text notice;
 
     private List<Score> scoreList = new List<Score>();
+
+    private Team currentServeTeam;
 
     public void OnTapLeft()
     {
@@ -41,20 +45,75 @@ public class Manager : MonoBehaviour
         Refresh();
     }
 
+    public void OnTapBack()
+    {
+        scoreList.RemoveAt(scoreList.Count - 1);
+        Refresh();
+    }
+
     private void Refresh()
     {
-        notice.text = string.Format("{0} - {1}", GetCurrentScore(Team.LEFT), GetCurrentScore(Team.RIGHT));
+        var justNowScore = GetLastScore();
+        notice.text = CreateString(currentServeTeam, justNowScore.team);
+        currentServeTeam = justNowScore.team;
+    }
+
+    private string CreateString(Team currentServeTeam, Team nextServeTeam)
+    {
+        var justNowTeamPoint = GetCurrentPoint(nextServeTeam);
+        var otherTeamPoint = GetCurrentPoint(GetOtherTeam(nextServeTeam));
+
+        if (MAX_POINT <= justNowTeamPoint)
+        {
+            return "Game set";
+        }
+
+        var str = "";
+
+        // サーブ権ではなくポイントが入ったかどうか
+        if (1 < scoreList.Count)
+        {
+            str += (currentServeTeam == nextServeTeam) ? "Point " : "Over ";
+        }
+
+        // ポイント表示
+        if (justNowTeamPoint == otherTeamPoint)
+        {
+            str += string.Format("{0} all", GetPointString(justNowTeamPoint));
+            if (justNowTeamPoint == 0)
+            {
+                // 初回だけ play って言う
+                str += " play";
+            }
+        }
+        else
+        {
+            str += string.Format("{0} - {1}", GetPointString(justNowTeamPoint), GetPointString(otherTeamPoint));
+        }
+
+        if (justNowTeamPoint == MAX_POINT - 1)
+        {
+            str += " match point";
+        }
+
+        return str;
     }
 
     private void AddScore(Score score)
     {
-        var point = scoreList.Count == 0 ? 0 : 1;
+        var first = scoreList.Count == 0;
+        if (first)
+        {
+            currentServeTeam = score.team;
+        }
+        // 初回はサーブ権のみ記録するため0点
+        var point = first ? 0 : 1;
         score.point = point;
 
         scoreList.Add(score);
     }
 
-    private int GetCurrentScore(Team team)
+    private int GetCurrentPoint(Team team)
     {
         var ret = 0;
         foreach (var v in scoreList)
@@ -65,5 +124,34 @@ public class Manager : MonoBehaviour
             }
         }
         return ret;
+    }
+
+    private Score GetLastScore()
+    {
+        return scoreList[scoreList.Count - 1];
+    }
+
+    private string GetPointString(int point)
+    {
+        if (point == 0)
+        {
+            return "love";
+        }
+        else
+        {
+            return string.Format("{0}", point);
+        }
+    }
+
+    private Team GetOtherTeam(Team team)
+    {
+        if (team == Team.LEFT)
+        {
+            return Team.RIGHT;
+        }
+        else
+        {
+            return Team.LEFT;
+        }
     }
 }
