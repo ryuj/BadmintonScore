@@ -28,10 +28,14 @@ public class Manager : MonoBehaviour
 
     [SerializeField]
     private Text notice;
+    [SerializeField]
+    private GameObject resetButton;
 
     private List<Score> scoreList = new List<Score>();
 
     private Team currentServeTeam;
+
+    private bool finished;
 
     public void OnTapLeft()
     {
@@ -51,9 +55,23 @@ public class Manager : MonoBehaviour
         Refresh();
     }
 
+    public void OnTapReset()
+    {
+        scoreList.Clear();
+        resetButton.SetActive(false);
+        finished = false;
+        notice.text = "waiting...";
+    }
+
     private void Refresh()
     {
         var justNowScore = GetLastScore();
+        if (!finished && MAX_POINT <= GetCurrentPoint(justNowScore.team))
+        {
+            finished = true;
+            resetButton.SetActive(true);
+        }
+
         notice.text = CreateString(currentServeTeam, justNowScore.team);
         currentServeTeam = justNowScore.team;
     }
@@ -63,7 +81,7 @@ public class Manager : MonoBehaviour
         var justNowTeamPoint = GetCurrentPoint(nextServeTeam);
         var otherTeamPoint = GetCurrentPoint(GetOtherTeam(nextServeTeam));
 
-        if (MAX_POINT <= justNowTeamPoint)
+        if (finished)
         {
             return "Game set";
         }
@@ -101,6 +119,11 @@ public class Manager : MonoBehaviour
 
     private void AddScore(Score score)
     {
+        if (finished)
+        {
+            return;
+        }
+
         var first = scoreList.Count == 0;
         if (first)
         {
