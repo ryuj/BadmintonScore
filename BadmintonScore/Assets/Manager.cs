@@ -78,13 +78,13 @@ public class Manager : MonoBehaviour
 
     private string CreateString(Team currentServeTeam, Team nextServeTeam)
     {
-        var justNowTeamPoint = GetCurrentPoint(nextServeTeam);
-        var otherTeamPoint = GetCurrentPoint(GetOtherTeam(nextServeTeam));
-
         if (finished)
         {
             return "Game set";
         }
+
+        var justNowTeamPoint = GetCurrentPoint(nextServeTeam);
+        var otherTeamPoint = GetCurrentPoint(GetOtherTeam(nextServeTeam));
 
         var str = "";
 
